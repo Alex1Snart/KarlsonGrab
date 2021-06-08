@@ -1,0 +1,68 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Pickup : MonoBehaviour
+{
+    public GameObject Hand;
+    private bool Held = false;
+    public Transform playerCam;
+    private SpringJoint joint;
+    private LineRenderer Line;
+
+    private void Awake()
+    {
+        Line = Hand.GetComponent<LineRenderer>();
+    }
+
+    private void OnMouseDown()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(playerCam.position, playerCam.forward, out hit, 4f))
+        {
+            Held = true;
+            joint = gameObject.AddComponent<SpringJoint>();
+            joint.autoConfigureConnectedAnchor = false;
+            Line.positionCount = 2;
+            float DistanceFromHand = Vector3.Distance(Hand.transform.position,transform.position);
+            joint.maxDistance = DistanceFromHand*0.8f;
+            joint.minDistance = DistanceFromHand * 0.6f;
+            joint.spring = 1000f;
+            joint.damper = 200f;
+            joint.massScale = 1000f;
+            
+        }
+
+    }
+
+    private void Update()
+    {
+        if (Held == true)
+        {
+            joint.connectedAnchor = Hand.transform.position;
+        }
+    }
+
+    private void LateUpdate()
+    {
+        drawLine();
+    }
+
+    private void OnMouseUp()
+    {
+        if (Held == true)
+        {
+            Held = false;
+            Line.positionCount = 0;
+            Destroy(joint);
+        }
+    }
+
+    void drawLine()
+    {
+        if (!joint) return;
+        Line.SetPosition(0, Hand.transform.position);
+        Line.SetPosition(1, gameObject.transform.position);
+    }
+
+}
